@@ -1,128 +1,100 @@
-<div align="center">
-  <div style="display: inline-block;">
-    <img style="width:100%; display: block;"
-      src="https://earthdata.nasa.gov/s3fs-public/2023-04/Spatial-Resolution-Basics.jpeg?VersionId=.TFcm5kTK_CqM9z.LgvltbUAvrr3Z6J6"
-      alt="Remote Sensing"/>
-    <div align="right">
-      Credit: NASA EarthData
-    </div>
-  </div>
-</div>
+# Remote Sensing Toolkit
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![GDAL](https://img.shields.io/badge/GDAL-rasterio-5CAE58?logo=gdal&logoColor=white)](https://rasterio.readthedocs.io/)
+[![Tutorials](https://img.shields.io/badge/Tutorials-Jupyter-F37626?logo=jupyter&logoColor=white)](tutorials/)
 
-# Remote-Sensing
+Python utilities for preprocessing and analyzing satellite and geospatial data. The repository has raster and vector GIS helpers, a band reader and plotter for NASA Harmonized Landsat Sentinel-2 (HLS) products, a reader for MODIS MOD13Q1/MYD13Q1 vegetation index time series, and tools for in-situ water quality observation points. Two tutorial notebooks show how the modules take raw downloads to analysis-ready data.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![HLS L30 true color, S30 NDVI and L30 thermal band over the Seoul metropolitan area, and a MODIS NDVI time series with growing-season metrics over the Honam plain](docs/images/preview.jpg)
 
-A collection of Python utilities for preprocessing and analyzing satellite and geospatial data: generic raster/vector GIS helpers, a reader/plotter for NASA Harmonized Landsat Sentinel-2 (HLS) products, a reader/plotter for MODIS MOD13Q1/MYD13Q1 vegetation index time series, and tools for working with in-situ water quality observation points.
+<sub>Figures from the [tutorials](tutorials/): HLS L30/S30 over tile T52SCG (top) and MODIS MOD13Q1 NDVI over the Honam plain (bottom).</sub>
 
-## Repository Structure
+## Contents
 
-```
-remote_sensing/
-├── GIS/
-│   ├── raster.py       # Raster (GeoTIFF) I/O, validation, reprojection, plotting
-│   ├── vector.py       # Vector (Shapefile) I/O, CRS handling, plotting
-│   └── coordinate.py   # DMS <-> decimal degree coordinate conversion
-├── HLS.py              # HLS L30/S30 band reader, plotter, and water index calculator
-├── MODIS.py            # MOD13Q1/MYD13Q1 NDVI/EVI time series reader, QA decoder, and plotter
-├── water_quality/
-│   └── obs.py          # Observation point <-> GeoDataFrame, raster sampling, Folium plotting
-├── tutorials/          # Worked preprocessing examples (see tutorials/README.md)
-├── requirements.txt
-└── LICENSE
-```
-
-## Tutorials
-
-[`tutorials/`](tutorials/) has worked, raw-to-analysis-ready preprocessing notebooks that build on the modules above. Currently:
-
-- [`hls_l30_s30`](tutorials/hls_l30_s30/) — cross-sensor comparison of NASA HLS L30 (Landsat) and S30 (Sentinel-2), covering valid-pixel ROI intersection, RGB composites, cross-sensor NDVI, and each product's unique bands (L30 thermal, S30 red edge).
-- [`modis_vi_timeseries`](tutorials/modis_vi_timeseries/) — multi-year MODIS MOD13Q1 NDVI/EVI time series over rice-paddy cropland, covering Pixel Reliability masking, NDVI-vs-EVI seasonal comparison, and simple start/peak/end-of-season phenology extraction.
+| Module | What it does |
+|:--|:--|
+| [`GIS/raster.py`](GIS/raster.py) | GeoTIFF reading, validity checks, reprojection and plotting |
+| [`GIS/vector.py`](GIS/vector.py) | Shapefile reading, CRS checks, reprojection and plotting |
+| [`GIS/coordinate.py`](GIS/coordinate.py) | Conversion between DMS and decimal degrees |
+| [`HLS.py`](HLS.py) | HLS L30/S30 band reader, RGB and index plotting, MNDWI, Fmask cloud and water decoding |
+| [`MODIS.py`](MODIS.py) | MOD13Q1/MYD13Q1 NDVI and EVI reader, Pixel Reliability masking, map and time series plots |
+| [`water_quality/obs.py`](water_quality/obs.py) | Observation points to GeoDataFrame, raster sampling around points, Folium maps |
+| [`tutorials/`](tutorials/) | Worked preprocessing notebooks for HLS and MODIS |
 
 ## Installation
 
-This project depends on GDAL, `rasterio`, and `cartopy`, which are C-extension-heavy geospatial libraries. Installing them via conda/mamba (conda-forge channel) is more reliable than plain `pip` on most platforms:
+GDAL, `rasterio` and `cartopy` are compiled geospatial libraries, so conda (conda-forge channel) is the most reliable way to install them.
 
 ```bash
+git clone https://github.com/SeongjunLee4473/remote-sensing-toolkit.git
+cd remote-sensing-toolkit
+
 conda create -n remote-sensing python=3.12
 conda activate remote-sensing
-conda install -c conda-forge rasterio gdal cartopy geopandas folium tqdm numpy pandas matplotlib
+conda install -c conda-forge rasterio gdal cartopy pyproj geopandas folium tqdm numpy pandas matplotlib xarray netcdf4
 ```
 
-If GDAL is already available on your system, you can instead use:
+If GDAL is already installed on your system, `pip install -r requirements.txt` also works.
 
-```bash
-pip install -r requirements.txt
-```
+The modules are not packaged for `pip`. Run your scripts from the repository root, or add the root to `sys.path`.
 
-## Modules
+## Usage
 
-### `GIS/`
-
-General-purpose raster/vector GIS helpers.
+### Raster and vector data
 
 ```python
 from GIS import raster, vector, coordinate
 
-# Raster
 data, transform, crs = raster.read("path/to/raster.tif")
 raster.plot(data, transform=transform, cmap="viridis")
 
-# Vector
 gdf = vector.read("path/to/vector.shp")
 vector.plot(gdf)
 
-# Coordinate conversion
 dd = coordinate.dms_to_dd("37° 43' 55.0\"")
 ```
 
-### `HLS.py`
+### HLS L30/S30
 
-Reader, plotter, and water-index calculator for NASA HLS L30/S30 surface reflectance products.
+`HLS.BandReader` reads mosaicked bands named `B02_merged_<date>.tif`, `Fmask_merged_<date>.tif` and so on. For raw per-granule files, see the loader in the [HLS tutorial](tutorials/hls_l30_s30/).
 
 ```python
 import HLS
 
 reader = HLS.BandReader(folder_path="path/to/hls/scene", product="S30", date="2026001")
 plotter = HLS.BandPlotter(reader)
-
 plotter.plot_rgb(title="True color")
 plotter.plot_false_color(title="False color (NIR-R-G)")
 
-water_calc = HLS.WaterIndicesCalculator(reader)
-mndwi, transform = water_calc.calculate_mndwi()
+mndwi, transform = HLS.WaterIndicesCalculator(reader).calculate_mndwi()
 plotter.plot_index(mndwi, transform, threshold=0.1, title="MNDWI")
 
-clear_mask = HLS.is_cloud(reader.qa)
-water_mask = HLS.is_water(reader.qa)
+cloud_mask = HLS.is_cloud(reader.qa)   # 1 = cloud, shadow or adjacent, 0 = clear
+water_mask = HLS.is_water(reader.qa)   # 1 = water
 ```
 
-### `MODIS.py`
+### MODIS vegetation index time series
 
-Reader, QA decoder, and plotter for MODIS MOD13Q1/MYD13Q1 vegetation index time series (as exported by NASA AppEEARS, one NetCDF file per AOI covering every requested date).
+`MODIS.VITimeSeriesReader` expects one NetCDF file exported from NASA AppEEARS (Area request, geographic projection).
 
 ```python
 import MODIS
 
 reader = MODIS.VITimeSeriesReader("path/to/MOD13Q1.061_250m_aid0001.nc")
-ndvi = reader.ndvi()  # masked via Pixel Reliability by default
+ndvi = reader.ndvi()   # unreliable pixels masked by Pixel Reliability
 evi = reader.evi()
 
-bbox = (126.70, 35.65, 127.05, 35.95)  # west, south, east, north (WGS84)
-ndvi_roi = reader.roi_mean(ndvi, bbox=bbox)  # AOI-mean time series
+bbox = (126.70, 35.65, 127.05, 35.95)   # west, south, east, north (WGS84)
+ndvi_mean = reader.roi_mean(ndvi, bbox=bbox)
 
 plotter = MODIS.VIPlotter(reader)
-plotter.plot_timeseries(ndvi_roi, label="NDVI")
-plotter.plot_map(ndvi.isel(time=0).values, title="NDVI snapshot")
-
-reliable_mask = MODIS.is_reliable(reader.reliability().values)
+plotter.plot_timeseries(ndvi_mean, label="NDVI")
+plotter.plot_map(ndvi.isel(time=0).values, title="NDVI")
 ```
 
-### `water_quality/`
-
-Utilities for working with in-situ water quality observation points.
+### Water quality observation points
 
 ```python
 from water_quality import obs
@@ -132,10 +104,19 @@ samples = obs.extract_pixels_near_points(gdf, raster_data, transform, radius_deg
 m = obs.plot_points("path/to/obs_points.csv", "3008B40")
 ```
 
+## Tutorials
+
+| Notebook | Topic | Data |
+|:--|:--|:--|
+| [HLS L30 vs S30](tutorials/hls_l30_s30/) | Valid-pixel ROI intersection, RGB composites, cross-sensor NDVI, L30 thermal and S30 red edge bands | NASA LP DAAC HLS v2.0 |
+| [MODIS NDVI/EVI time series](tutorials/modis_vi_timeseries/) | Pixel Reliability masking, NDVI and EVI seasonal curves, start, peak and end of season | NASA LP DAAC MOD13Q1.061 via AppEEARS |
+
+Raw satellite data is not included. Each tutorial README explains where to download it and where to put it.
+
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+Released under the [MIT License](LICENSE).
 
 ## Contact
 
-Developed by [Seongjun Lee](mailto:seongjunlee4473@gmail.com?subject=Questions%20for%20GitHub%20projects)
+Seongjun Lee ([@SeongjunLee4473](https://github.com/SeongjunLee4473))

@@ -1,10 +1,10 @@
 # Tutorials
 
-Worked examples showing raw-to-analysis-ready preprocessing for individual satellite products, as a companion to the reusable modules in [`GIS/`](../GIS) and [`HLS.py`](../HLS.py).
+Worked examples that take individual satellite products from raw downloads to analysis-ready data, using the modules in [`GIS/`](../GIS), [`HLS.py`](../HLS.py) and [`MODIS.py`](../MODIS.py).
 
 ## Environment
 
-Same environment as the rest of the repo (see the root [README](../README.md#installation)) — `rasterio`, `GDAL`, `cartopy`, `geopandas`.
+The notebooks use the same environment as the rest of the repository (`rasterio`, `GDAL`, `cartopy`, `geopandas`, `xarray`). See [Installation](../README.md#installation) in the root README.
 
 ## Contents
 

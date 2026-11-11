@@ -9,8 +9,8 @@ Unlike the [`hls_l30_s30`](../hls_l30_s30/) tutorial (single-scene, per-pixel sp
 NASA LP DAAC, MOD13Q1.061, requested via [AppEEARS](https://appeears.earthdatacloud.nasa.gov/) as an **Area** sample request:
 
 - **Layers**: `_250m_16_days_NDVI`, `_250m_16_days_EVI`, `_250m_16_days_pixel_reliability`, `_250m_16_days_composite_day_of_the_year`
-- **Projection**: Geographic (WGS84) — AppEEARS reprojects MODIS's native Sinusoidal grid for you, so this notebook works directly in longitude/latitude with no reprojection step
-- **Output format**: NetCDF (one file, every date bundled with a shared `time`/`lat`/`lon` grid — see the root README's note on why NetCDF was chosen over per-date GeoTIFFs for this time-series use case)
+- **Projection**: Geographic (WGS84). AppEEARS reprojects the native MODIS Sinusoidal grid, so the notebook works directly in longitude/latitude without a reprojection step
+- **Output format**: NetCDF. One file holds every date on a shared `time`/`lat`/`lon` grid, which suits a time series better than one GeoTIFF per date
 
 Place the downloaded file at:
 
@@ -29,4 +29,4 @@ or point the notebook at a different location via the `MODIS_NC_PATH` environmen
 5. Extract simple phenology metrics (start/peak/end of season) via a threshold-crossing method
 6. Plot a single-date NDVI snapshot as a map, directly in longitude/latitude (no UTM tick-relabeling trick needed here, since the data is already in a geographic grid)
 
-**Caveat**: the phenology thresholding here is a simple, illustrative amplitude-threshold method, not a validated phenology-detection algorithm — treat the extracted dates as approximate.
+**Caveat:** the phenology step uses a simple amplitude-threshold method for illustration. It is not a validated phenology detection algorithm, so treat the extracted dates as approximate.
