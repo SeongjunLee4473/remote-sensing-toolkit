@@ -124,29 +124,25 @@ remove_invalid_tif(invalid_tif_list)
 # Read raster data
 def read(raster_file_path):
     '''
-    This function loads raster data from a specified file and returns the raster data
-    and its affine transform.
+    This function loads the first band of a raster file and returns the raster data,
+    its affine transform and its CRS.
 
     Last modified: 2024-12-27 / Add raster_crs (To check the coordinate reference system)
     Created on: 2024-12-27
     Created by: Seongjun Lee
     '''
-    # Load Pekel Data
-    dataset = rasterio.open(raster_file_path)
-
-    # Get the affine transform and data from the dataset
-    raster_transform = dataset.transform
-    raster_data = dataset.read(1)
-    
-    # Get the CRS from the dataset
-    raster_crs = dataset.crs
+    # Read the first band, its affine transform and CRS, then close the file
+    with rasterio.open(raster_file_path) as dataset:
+        raster_data = dataset.read(1)
+        raster_transform = dataset.transform
+        raster_crs = dataset.crs
 
     return raster_data, raster_transform, raster_crs
 
 '''
 # Example usage:
 raster_file_path = 'path/to/raster.tif'
-raster_data, raster_transform = read_raster(raster_file_path)
+raster_data, raster_transform, raster_crs = read(raster_file_path)
 '''
 #---------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------#

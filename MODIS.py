@@ -129,8 +129,8 @@ class VIPlotter:
 
         AppEEARS NetCDF exports encode ``time`` with cftime objects (non-Gregorian
         calendar attribute), which matplotlib cannot plot directly without the optional
-        ``nc-time-axis`` package -- converted here to plain ``datetime.datetime`` by
-        year/month/day instead, since that's all a 16-day-composite date needs.
+        ``nc-time-axis`` package. They are converted here to plain ``datetime.datetime``
+        values by year/month/day, which is all a 16-day composite date needs.
         """
         if ax is None:
             _, ax = plt.subplots(figsize=(10, 4))
